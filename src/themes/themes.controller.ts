@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe
 } from '@nestjs/common';
 import { ThemesService } from './themes.service';
 import { LinksService } from '../links/links.service';
@@ -31,7 +32,7 @@ export class ThemesController {
   }
 
   @Get(':id/search-news/')
-  async searchNewsForTheme(@Param('id') id: string) {
+  async searchNewsForTheme(@Param('id', ParseUUIDPipe) id: string) {
     const newsLinks = await this.themesService.searchNews(id);
 
     return  { message: 'Links created successfully.', newsLinks };
@@ -39,14 +40,14 @@ export class ThemesController {
 
   @Put(':id')
   updateTheme(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateThemeDto: UpdateThemeDto,
   ): Promise<Theme> {
     return this.themesService.update(id, updateThemeDto);
   }
 
   @Delete(':id')
-  deleteTheme(@Param('id') id: string): Promise<void> {
+  deleteTheme(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.themesService.delete(id);
   }
 }

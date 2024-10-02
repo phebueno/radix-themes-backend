@@ -71,6 +71,7 @@ export class ThemesService {
     );
     if (!result.data.
       articles){
+      //will fail if any query word is too short, too long or no results are found
       throw new InternalServerErrorException(
         'Something went wrong with gdeltproject request. Please try rewriting your queries before trying again.',
       );
