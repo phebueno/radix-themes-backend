@@ -1,12 +1,24 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { ThemesService } from './themes.service';
+import { LinksService } from '../links/links.service';
 import { CreateThemeDto } from './dtos/create-theme.dto';
 import { UpdateThemeDto } from './dtos/update-theme.dto';
 import { Theme } from './theme.entity';
 
 @Controller('themes')
 export class ThemesController {
-  constructor(private readonly themesService: ThemesService) {}
+  constructor(
+    private readonly themesService: ThemesService,
+    private readonly linksService: LinksService,
+  ) {}
 
   @Post()
   createTheme(@Body() createThemeDto: CreateThemeDto): Promise<Theme> {
@@ -16,6 +28,13 @@ export class ThemesController {
   @Get()
   findAllThemes(): Promise<Theme[]> {
     return this.themesService.findAll();
+  }
+
+  @Get(':id/search-news/')
+  async searchNewsForTheme(@Param('id') id: string) {
+    const newsLinks = await this.themesService.searchNews(id);
+
+    return  { message: 'Links created successfully.', newsLinks };
   }
 
   @Put(':id')
