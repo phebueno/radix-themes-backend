@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { ThemeStatus } from './enums/theme-status.enum';
 import { Link } from '../links/link.entity';
+import { Length } from 'class-validator';
 
 @Entity('themes')
 export class Theme {
@@ -15,6 +16,7 @@ export class Theme {
   id: string;
 
   @Column()
+  @Length(3)
   title: string;
 
   @Column({ type: 'text', nullable: true })

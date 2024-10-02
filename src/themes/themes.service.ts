@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Theme } from './theme.entity';
@@ -6,13 +10,16 @@ import { CreateThemeDto } from './dtos/create-theme.dto';
 import { UpdateThemeDto } from './dtos/update-theme.dto';
 import { LinksService } from '../links/links.service';
 import { ThemeStatus } from './enums/theme-status.enum';
+import axios from 'axios';
+import { ArticleDto } from '../links/dtos/article-dto';
+import { Link } from '../links/link.entity';
 
 @Injectable()
 export class ThemesService {
   constructor(
     @InjectRepository(Theme)
     private themeRepository: Repository<Theme>,
-    private readonly linksService: LinksService
+    private readonly linksService: LinksService,
   ) {}
 
   async create(createThemeDto: CreateThemeDto): Promise<Theme> {
@@ -42,36 +49,67 @@ export class ThemesService {
     }
   }
 
-  private async updateThemeStatus(themeId: string, status: ThemeStatus): Promise<void> {
+  private async updateThemeStatus(
+    themeId: string,
+    status: ThemeStatus,
+  ): Promise<void> {
     await this.themeRepository.update(themeId, { status });
   }
 
-  private async fetchNewsFromAPI(): Promise<string[]> {
-    // Aqui você implementaria a chamada real para a API externa
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          'https://example.com/1',
-          'https://example.com/2',
-        ]);
-      }, 3000);
-    });
+  private cleanKeywords = (keywords: string): string => {
+    return keywords
+      .split(' ') // Quebra o texto em palavras (assume que as palavras estão separadas por espaços)
+      .filter((word) => word.length >= 3) // Filtra palavras com menos de 3 caracteres
+      .join(' OR '); // Junta as palavras restantes com "OR" entre elas
+  };
+
+  private async fetchNewsFromAPI(theme: Theme): Promise<ArticleDto[]> {
+    const query = `${theme.title} AND ${this.cleanKeywords(theme.keywords)}`;
+    const result = await axios.get(
+      `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&format=json`,
+    );
+    if (!result.data.
+      articles){
+      throw new InternalServerErrorException(
+        'Something went wrong with gdeltproject request. Please rewrite your queries before trying again.',
+      );
+
+    }
+      
+    const articles = result.data.articles as ArticleDto[];
+
+    return articles;
   }
-  
-  async searchNews(themeId: string): Promise<string[]> {
+
+  async searchNews(themeId: string): Promise<Link[]> {
+    const existingTheme = await this.themeRepository.findOne({
+      where: { id: themeId },
+    });
+
+    if (!existingTheme) {
+      throw new NotFoundException(`Theme with ID ${themeId} not found`);
+    }
+
     await this.updateThemeStatus(themeId, ThemeStatus.IN_PROGRESS);
 
     try {
-      const newsLinks = await this.fetchNewsFromAPI();
+      const newsLinks = await this.fetchNewsFromAPI(existingTheme);
 
-      await this.linksService.createLinksForTheme(themeId, newsLinks);
+      const mappedLinks = await this.linksService.createLinksForTheme(
+        themeId,
+        newsLinks,
+      );
 
       await this.updateThemeStatus(themeId, ThemeStatus.COMPLETED);
 
-      return newsLinks;
-
+      return mappedLinks;
     } catch (error) {
+      console.log(error);
       await this.updateThemeStatus(themeId, ThemeStatus.PENDING);
+
+      if (error instanceof InternalServerErrorException) {
+        throw error;
+      }
       throw new Error('Error fetching news.');
     }
   }
