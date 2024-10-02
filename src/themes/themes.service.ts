@@ -29,7 +29,7 @@ export class ThemesService {
   }
 
   async findAll(): Promise<Theme[]> {
-    return this.themeRepository.find();
+    return this.themeRepository.find({ relations: ['links'] });
   }
 
   async update(id: string, updateThemeDto: UpdateThemeDto): Promise<Theme> {
