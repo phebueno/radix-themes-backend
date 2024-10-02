@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ForbiddenException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -71,7 +72,7 @@ export class ThemesService {
     if (!result.data.
       articles){
       throw new InternalServerErrorException(
-        'Something went wrong with gdeltproject request. Please rewrite your queries before trying again.',
+        'Something went wrong with gdeltproject request. Please try rewriting your queries before trying again.',
       );
 
     }
@@ -88,6 +89,10 @@ export class ThemesService {
 
     if (!existingTheme) {
       throw new NotFoundException(`Theme with ID ${themeId} not found`);
+    }
+
+    if(existingTheme.status===ThemeStatus.COMPLETED){
+      throw new ForbiddenException(`News search on theme with ID ${themeId} is already completed`)
     }
 
     await this.updateThemeStatus(themeId, ThemeStatus.IN_PROGRESS);
