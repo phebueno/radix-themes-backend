@@ -36,7 +36,7 @@ export class ThemesService {
     return this.themeRepository.find({
       relations: ['links'],
       order: {
-        updatedAt: 'DESC',
+        createdAt: 'DESC',
       },
     });
   }
