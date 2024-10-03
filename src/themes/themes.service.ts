@@ -2,7 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  ForbiddenException
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -33,7 +33,12 @@ export class ThemesService {
   }
 
   async findAll(): Promise<Theme[]> {
-    return this.themeRepository.find({ relations: ['links'] });
+    return this.themeRepository.find({
+      relations: ['links'],
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
   }
 
   async update(id: string, updateThemeDto: UpdateThemeDto): Promise<Theme> {
@@ -73,15 +78,13 @@ export class ThemesService {
     const result = await axios.get(
       `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&format=json`,
     );
-    if (!result.data.
-      articles){
+    if (!result.data.articles) {
       //will fail if any query word is too short, too long or no results are found
       throw new InternalServerErrorException(
         'Something went wrong with gdeltproject request. Please try rewriting your queries before trying again.',
       );
-
     }
-      
+
     const articles = result.data.articles as ArticleDto[];
 
     return articles;
@@ -96,8 +99,10 @@ export class ThemesService {
       throw new NotFoundException(`Theme with ID ${themeId} not found`);
     }
 
-    if(existingTheme.status===ThemeStatus.COMPLETED){
-      throw new ForbiddenException(`News search on theme with ID ${themeId} is already completed`)
+    if (existingTheme.status === ThemeStatus.COMPLETED) {
+      throw new ForbiddenException(
+        `News search on theme with ID ${themeId} is already completed`,
+      );
     }
 
     await this.updateThemeStatus(themeId, ThemeStatus.IN_PROGRESS);
