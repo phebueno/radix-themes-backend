@@ -26,39 +26,6 @@ export class ThemesService {
     private themeRepository: Repository<Theme>,
     private readonly linksService: LinksService,
   ) {}
-
-  async create(createThemeDto: CreateThemeDto): Promise<Theme> {
-    const theme = this.themeRepository.create(createThemeDto);
-    return this.themeRepository.save(theme);
-  }
-
-  async findAll(): Promise<Theme[]> {
-    return this.themeRepository.find({
-      relations: ['links'],
-      order: {
-        createdAt: 'DESC',
-      },
-    });
-  }
-
-  async update(id: string, updateThemeDto: UpdateThemeDto): Promise<Theme> {
-    const theme = await this.themeRepository.preload({
-      id,
-      ...updateThemeDto,
-    });
-    if (!theme) {
-      throw new NotFoundException(`Theme with ID ${id} not found`);
-    }
-    return this.themeRepository.save(theme);
-  }
-
-  async delete(id: string): Promise<void> {
-    const result = await this.themeRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Theme with ID ${id} not found`);
-    }
-  }
-
   private async updateThemeStatus(
     themeId: string,
     status: ThemeStatus,
@@ -68,9 +35,9 @@ export class ThemesService {
 
   private cleanKeywords = (keywords: string): string => {
     return keywords
-      .split(' ') // Quebra o texto em palavras (assume que as palavras estão separadas por espaços)
-      .filter((word) => word.length >= 3) // Filtra palavras com menos de 3 caracteres
-      .join(' OR '); // Junta as palavras restantes com "OR" entre elas
+      .split(' ')
+      .filter((word) => word.length >= 3)
+      .join(' OR ');
   };
 
   private async fetchNewsFromAPI(theme: Theme): Promise<ArticleDto[]> {
@@ -126,6 +93,55 @@ export class ThemesService {
         throw error;
       }
       throw new Error('Error fetching news.');
+    }
+  }
+
+  async create(createThemeDto: CreateThemeDto): Promise<Theme> {
+    const theme = this.themeRepository.create(createThemeDto);
+    return this.themeRepository.save(theme);
+  }
+
+  async findAll(): Promise<Theme[]> {
+    return this.themeRepository.find({
+      relations: ['links'],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  async findOneById(id: string): Promise<Theme> {
+    const theme = await this.themeRepository.findOne({
+      where: { id },
+      relations: ['links'],
+    });
+
+    if (!theme) {
+      throw new NotFoundException(`Theme of ID ${id} not found`);
+    }
+
+    if (theme.links.length === 0) {
+      throw new NotFoundException(`Theme are no news links for theme of ID ${id}`);
+    }
+
+    return theme;
+  }
+
+  async update(id: string, updateThemeDto: UpdateThemeDto): Promise<Theme> {
+    const theme = await this.themeRepository.preload({
+      id,
+      ...updateThemeDto,
+    });
+    if (!theme) {
+      throw new NotFoundException(`Theme with ID ${id} not found`);
+    }
+    return this.themeRepository.save(theme);
+  }
+
+  async delete(id: string): Promise<void> {
+    const result = await this.themeRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Theme with ID ${id} not found`);
     }
   }
 }

@@ -31,6 +31,13 @@ export class ThemesController {
     return this.themesService.findAll();
   }
 
+  @Get(':id')
+  async getThemeById(@Param('id', ParseUUIDPipe) id: string) {
+    const newsLinks = await this.themesService.findOneById(id);
+
+    return  { message: 'Links created successfully.', newsLinks };
+  }
+
   @Get(':id/search-news/')
   async searchNewsForTheme(@Param('id', ParseUUIDPipe) id: string) {
     const newsLinks = await this.themesService.searchNews(id);
