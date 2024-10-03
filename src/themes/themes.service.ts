@@ -6,14 +6,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { Theme } from './theme.entity';
+import { Link } from '../links/link.entity';
+
 import { CreateThemeDto } from './dtos/create-theme.dto';
 import { UpdateThemeDto } from './dtos/update-theme.dto';
+
+import { ArticleDto } from '../links/dtos/article-dto';
 import { LinksService } from '../links/links.service';
 import { ThemeStatus } from './enums/theme-status.enum';
+
 import axios from 'axios';
-import { ArticleDto } from '../links/dtos/article-dto';
-import { Link } from '../links/link.entity';
 
 @Injectable()
 export class ThemesService {
