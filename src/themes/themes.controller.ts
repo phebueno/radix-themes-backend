@@ -31,15 +31,19 @@ export class ThemesController {
   findAllThemes(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<Theme[]> {
+  ): Promise<{ themes: Theme[]; meta: { total: number; hasMore: boolean } }> {
     return this.themesService.findAll(page, limit);
   }
 
   @Get(':id')
-  async getThemeById(@Param('id', ParseUUIDPipe) id: string) {
-    const newsLinks = await this.themesService.findOneById(id);
+  async getThemeById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    const newsLinks = await this.themesService.findOneById(id, page, limit);
 
-    return { message: 'Links created successfully.', newsLinks };
+    return newsLinks;
   }
 
   @Get(':id/search-news/')

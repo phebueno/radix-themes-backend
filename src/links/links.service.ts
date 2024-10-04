@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -22,14 +22,39 @@ export class LinksService {
         theme: { id: themeId },
         imgUrl: article.socialimage,
         title: article.title,
-        publishedDate: parse(article.seendate, "yyyyMMdd'T'HHmmssX", new Date()) || null,
+        publishedDate:
+          parse(article.seendate, "yyyyMMdd'T'HHmmssX", new Date()) || null,
         sourceCountry: article.sourcecountry,
       }),
     );
 
-
     await this.linkRepository.save(linkEntities);
 
     return linkEntities;
+  }
+
+  async findLinksByThemeId(
+    themeId: string,
+    page: number,
+    limit: number,
+  ): Promise<{ links: Link[]; meta: { total; hasMore } }> {
+    const skip = (page - 1) * limit;
+
+    const [links, total] = await this.linkRepository.findAndCount({
+      where: { theme: { id: themeId } },
+      order: { publishedDate: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    if (!total) {
+      throw new NotFoundException(
+        `No news links found for theme of ID ${themeId}`,
+      );
+    }
+
+    const hasMore = total > page * limit;
+
+    return { links, meta: { total, hasMore } };
   }
 }

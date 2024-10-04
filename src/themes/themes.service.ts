@@ -77,12 +77,9 @@ export class ThemesService {
     try {
       const newsLinks = await this.fetchNewsFromAPI(existingTheme);
 
-      await this.linksService.createLinksForTheme(
-        themeId,
-        newsLinks,
-      );
+      await this.linksService.createLinksForTheme(themeId, newsLinks);
 
-      await this.updateThemeStatus(themeId, ThemeStatus.COMPLETED);      
+      await this.updateThemeStatus(themeId, ThemeStatus.COMPLETED);
     } catch (error) {
       console.log(error);
       await this.updateThemeStatus(themeId, ThemeStatus.PENDING);
@@ -99,33 +96,46 @@ export class ThemesService {
     return this.themeRepository.save(theme);
   }
 
-  async findAll(page: number, limit: number): Promise<Theme[]> {
-    return this.themeRepository.find({
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<{ themes: Theme[]; meta: { total: number; hasMore: boolean } }> {
+    const [themes, total] = await this.themeRepository.findAndCount({
       order: {
         createdAt: 'DESC',
       },
-      take: limit,
       skip: (page - 1) * limit,
+      take: limit,
     });
+
+    const hasMore = total > (page - 1) * limit + themes.length;
+
+    return { themes, meta: { total, hasMore } };
   }
 
-  async findOneById(id: string): Promise<Theme> {
+  async findOneById(
+    id: string,
+    page: number,
+    limit: number,
+  ): Promise<{
+    theme: Theme;
+    meta: { total: number; hasMore: boolean };
+  }> {
     const theme = await this.themeRepository.findOne({
       where: { id },
-      relations: ['links'],
     });
 
     if (!theme) {
       throw new NotFoundException(`Theme of ID ${id} not found`);
     }
 
-    if (theme.links.length === 0) {
-      throw new NotFoundException(
-        `Theme are no news links for theme of ID ${id}`,
-      );
-    }
+    const { links, meta } = await this.linksService.findLinksByThemeId(
+      id,
+      page,
+      limit,
+    );
 
-    return theme;
+    return { theme: { ...theme, links }, meta };
   }
 
   async update(id: string, updateThemeDto: UpdateThemeDto): Promise<Theme> {
