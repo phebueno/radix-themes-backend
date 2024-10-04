@@ -57,7 +57,7 @@ export class ThemesService {
     return articles;
   }
 
-  async searchNews(themeId: string): Promise<Link[]> {
+  async searchNews(themeId: string): Promise<void> {
     const existingTheme = await this.themeRepository.findOne({
       where: { id: themeId },
     });
@@ -77,14 +77,12 @@ export class ThemesService {
     try {
       const newsLinks = await this.fetchNewsFromAPI(existingTheme);
 
-      const mappedLinks = await this.linksService.createLinksForTheme(
+      await this.linksService.createLinksForTheme(
         themeId,
         newsLinks,
       );
 
-      await this.updateThemeStatus(themeId, ThemeStatus.COMPLETED);
-
-      return mappedLinks;
+      await this.updateThemeStatus(themeId, ThemeStatus.COMPLETED);      
     } catch (error) {
       console.log(error);
       await this.updateThemeStatus(themeId, ThemeStatus.PENDING);
