@@ -52,7 +52,6 @@ export class ThemesService {
       );
     }
 
-
     const articles = result.data.articles as ArticleDto[];
 
     return articles;
@@ -102,12 +101,13 @@ export class ThemesService {
     return this.themeRepository.save(theme);
   }
 
-  async findAll(): Promise<Theme[]> {
+  async findAll(page: number, limit: number): Promise<Theme[]> {
     return this.themeRepository.find({
-      relations: ['links'],
       order: {
         createdAt: 'DESC',
       },
+      take: limit,
+      skip: (page - 1) * limit,
     });
   }
 
@@ -122,7 +122,9 @@ export class ThemesService {
     }
 
     if (theme.links.length === 0) {
-      throw new NotFoundException(`Theme are no news links for theme of ID ${id}`);
+      throw new NotFoundException(
+        `Theme are no news links for theme of ID ${id}`,
+      );
     }
 
     return theme;
