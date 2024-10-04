@@ -44,7 +44,7 @@ export class ThemesController {
 
   @Get(':id/search-news/')
   async searchNewsForTheme(@Param('id', ParseUUIDPipe) id: string) {
-    const newsLinks = await this.themesService.searchNews(id);
+    await this.themesService.searchNews(id);
 
     return { message: 'Links created successfully.' };
   }
