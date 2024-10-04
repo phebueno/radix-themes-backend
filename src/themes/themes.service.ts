@@ -52,6 +52,7 @@ export class ThemesService {
       );
     }
 
+
     const articles = result.data.articles as ArticleDto[];
 
     return articles;
