@@ -31,8 +31,9 @@ export class ThemesController {
   findAllThemes(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
+    @Query('offset') offset = 0,
   ): Promise<{ themes: Theme[]; meta: { total: number; hasMore: boolean } }> {
-    return this.themesService.findAll(page, limit);
+    return this.themesService.findAll(page, limit, offset);
   }
 
   @Get(':id')

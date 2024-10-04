@@ -99,12 +99,13 @@ export class ThemesService {
   async findAll(
     page: number,
     limit: number,
+    offset: number,
   ): Promise<{ themes: Theme[]; meta: { total: number; hasMore: boolean } }> {
     const [themes, total] = await this.themeRepository.findAndCount({
       order: {
         createdAt: 'DESC',
       },
-      skip: (page - 1) * limit,
+      skip: offset + (page - 1) * limit,
       take: limit,
     });
 

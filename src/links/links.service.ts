@@ -37,13 +37,11 @@ export class LinksService {
     themeId: string,
     page: number,
     limit: number,
-  ): Promise<{ links: Link[]; meta: { total; hasMore } }> {
-    const skip = (page - 1) * limit;
-
+  ): Promise<{ links: Link[]; meta: { total: number; hasMore: boolean } }> {
     const [links, total] = await this.linkRepository.findAndCount({
       where: { theme: { id: themeId } },
       order: { publishedDate: 'DESC' },
-      skip,
+      skip: (page - 1) * limit,
       take: limit,
     });
 
