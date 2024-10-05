@@ -1,5 +1,5 @@
 # RadixThemes API
-O RadixThemes é um serviço para pesquisa de assuntos e de palavras que possam ser de seu interesse. Este é a parte relativa ao servidor, e a parte de front-end do serviço está disponível em: https://github.com/phebueno/radix-themes-backend.
+O RadixThemes é um serviço para pesquisa de assuntos e de palavras que possam ser de seu interesse. Este é a parte relativa ao servidor, e a parte de front-end do serviço está disponível em: https://github.com/phebueno/radix-themes-frontend.
 
 ## Sobre
 Este é um serviço API que dispõe de diversas rotas para receber requisições, realizar consultas na internet, guardar informações e enviá-las para o usuário. Para as pesquisas, é utilizada a API da GDELT 2.0 API, cuja documentação está disponível em https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/. A partir de um certo Assunto definido, e com palavras-chave, a API associa ambos a Links encontrados pelo GDELT, disponibilizando-os para o usuário. O sistema também faz uso de paginações tanto para as requisições de Assuntos, quantos a de seus Links que foram criados. Assim, ele permite:
