@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Query,
   HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Theme } from './theme.entity';
 import { ThemesService } from './themes.service';
@@ -44,7 +45,7 @@ export class ThemesController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Title or keywords under 3 characters or not strings',
   })
-  createTheme(@Body() createThemeDto: CreateThemeDto): Promise<Theme> {
+  createTheme(@Body(new ValidationPipe()) createThemeDto: CreateThemeDto): Promise<Theme> {
     return this.themesService.create(createThemeDto);
   }
 
