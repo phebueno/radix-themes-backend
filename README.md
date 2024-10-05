@@ -1,55 +1,42 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# RadixThemes API
+O RadixThemes é um serviço para pesquisa de assuntos e de palavras que possam ser de seu interesse. Este é a parte relativa ao servidor, e a parte de front-end do serviço está disponível em: https://github.com/phebueno/radix-themes-backend.
 
-annotations:
-- unit test for all services coverage, 80% coverage
-- 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Sobre
+Este é um serviço API que dispõe de diversas rotas para receber requisições, realizar consultas na internet, guardar informações e enviá-las para o usuário. Para as pesquisas, é utilizada a API da GDELT 2.0 API, cuja documentação está disponível em https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/. A partir de um certo Assunto definido, e com palavras-chave, a API associa ambos a Links encontrados pelo GDELT, disponibilizando-os para o usuário. O sistema também faz uso de paginações tanto para as requisições de Assuntos, quantos a de seus Links que foram criados. Assim, ele permite:
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- Criação, Consulta, Atualização e Deleção de Assuntos
+- Pesquisa e Retorno de Links
 
-## Description
+## Tecnologias
+ ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)
+ ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+ ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+ ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
+ ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white)
+ ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+ - TypeORM, Supertest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
+## Instalação e como usar
+- Para instalar:
 ```bash
 $ npm install
 ```
-
-## Compile and run the project
-
+- O projeto dispõe de um arquivo docker-compose.yml, basta simplesmente, com Docker e Docker-Compose instalados, usar o comando para criar a base de dados:
+```bash
+$ docker-compose-up
+```
+- Crie um arquivo .env com as variáveis presentes no .env.example (os valores precisam ser os mesmos utilizados pelo docker-compose.myl
+- Para rodar o aplicativo, use:
 ```bash
 # development
 $ npm run start
 
 # watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Run tests
-
+## Testes
+- O projeto possui testes unitários para sua camada de serviço com mais de +80% de cobertura. Ele possui alguns testes também para a camada de controladores, e ambos usam dados mockados. Para rodá-los:
 ```bash
 # unit tests
 $ npm run test
@@ -61,28 +48,12 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Documentação API
+O serviço conta com integração com Swagger para documentação de API, disponível ao rodar a aplicação em desenvolvimento e acessar ao rota http://localhost:3000/api, ou de porta semelhante. Lá estão disponíveis os objetos de entrada e saída, queries, DTOs e todas as rotas.
+Segue um resumo dos endpoints:
+- POST /themes/ - Posta um Assunto, enviando no seu corpo título e palavras-chave
+- GET /themes - Retorna todos os temas com paginação
+- PUT /themes/:id - Atualiza um Assunto pelo seu ID, enviando no seu corpo título e palavras-chave
+- DELETE /themes/:id - Delete um Assunto pelo seu ID
+- GET /themes/:id/search-news - Busca e associa notícias ao Assunto pelo seu ID, utilizando a API GDELT
+- GET /themes/:id - Retorna um único Tema com seus Links se estiver disponível.
