@@ -8,22 +8,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Theme } from './theme.entity';
-import { Link } from '../links/link.entity';
+import { ThemeStatus } from './enums/theme-status.enum';
 
 import { CreateThemeDto } from './dtos/create-theme.dto';
 import { UpdateThemeDto } from './dtos/update-theme.dto';
 
-import { ArticleDto } from '../links/dtos/article-dto';
 import { LinksService } from '../links/links.service';
-import { ThemeStatus } from './enums/theme-status.enum';
+import { NewsService } from '../news/news.service';
 
-import axios from 'axios';
 
 @Injectable()
 export class ThemesService {
   constructor(
     @InjectRepository(Theme)
-    private themeRepository: Repository<Theme>,
+    private readonly themeRepository: Repository<Theme>,
+    private readonly newsService: NewsService,
     private readonly linksService: LinksService,
   ) {}
   private async updateThemeStatus(
@@ -31,31 +30,7 @@ export class ThemesService {
     status: ThemeStatus,
   ): Promise<void> {
     await this.themeRepository.update(themeId, { status });
-  }
-
-  private cleanKeywords = (keywords: string): string => {
-    return keywords
-      .split(' ')
-      .filter((word) => word.length >= 3)
-      .join(' OR ');
-  };
-
-  private async fetchNewsFromAPI(theme: Theme): Promise<ArticleDto[]> {
-    const query = `${theme.title} AND ${this.cleanKeywords(theme.keywords)}`;
-    const result = await axios.get(
-      `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&format=json`,
-    );
-    if (!result.data.articles) {
-      //will fail if any query word is too short, too long or no results are found
-      throw new InternalServerErrorException(
-        'Something went wrong with gdeltproject request. Please try rewriting your queries before trying again.',
-      );
-    }
-
-    const articles = result.data.articles as ArticleDto[];
-
-    return articles;
-  }
+  }  
 
   async searchNews(themeId: string): Promise<void> {
     const existingTheme = await this.themeRepository.findOne({
@@ -75,7 +50,7 @@ export class ThemesService {
     await this.updateThemeStatus(themeId, ThemeStatus.IN_PROGRESS);
 
     try {
-      const newsLinks = await this.fetchNewsFromAPI(existingTheme);
+      const newsLinks = await this.newsService.fetchNewsFromAPI(existingTheme);
 
       await this.linksService.createLinksForTheme(themeId, newsLinks);
 

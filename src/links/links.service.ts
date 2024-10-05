@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Link } from './link.entity';
 
-import { ArticleDto } from './dtos/article-dto';
+import { ArticleDto } from '../news/dtos/article-dto';
 
 import { parse } from 'date-fns';
 

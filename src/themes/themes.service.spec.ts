@@ -187,7 +187,7 @@ describe('ThemesService', () => {
         keywords: 'some key words',
       };
 
-      mockThemeRepository.preload.mockResolvedValue(null); // Simulando que o tema não foi encontrado
+      mockThemeRepository.preload.mockResolvedValue(null);
 
       await expect(service.update(themeId, updateThemeDto)).rejects.toThrow(
         NotFoundException,
