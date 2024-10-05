@@ -17,16 +17,17 @@ Este é um serviço API que dispõe de diversas rotas para receber requisições
  - TypeORM, Supertest
 
 ## Instalação e como usar
-- Para instalar:
+1. Clone este repositório.
+2. Para instalar:
 ```bash
 $ npm install
 ```
-- O projeto dispõe de um arquivo docker-compose.yml, basta simplesmente, com Docker e Docker-Compose instalados, usar o comando para criar a base de dados:
+3. O projeto dispõe de um arquivo docker-compose.yml, basta simplesmente, com Docker e Docker-Compose instalados, usar o comando para criar a base de dados:
 ```bash
 $ docker-compose-up
 ```
-- Crie um arquivo .env com as variáveis presentes no .env.example (os valores precisam ser os mesmos utilizados pelo docker-compose.myl
-- Para rodar o aplicativo, use:
+4. Crie um arquivo .env com as variáveis presentes no .env.example (os valores precisam ser os mesmos utilizados pelo docker-compose.myl
+5. Para rodar o aplicativo, use:
 ```bash
 # development
 $ npm run start
