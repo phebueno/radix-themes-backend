@@ -6,6 +6,11 @@ import { Theme } from './theme.entity';
 import { LinksService } from '../links/links.service';
 import { CreateThemeDto } from './dtos/create-theme.dto';
 import { NotFoundException } from '@nestjs/common';
+import { ThemeStatus } from './enums/theme-status.enum';
+import { Link } from '../links/link.entity';
+import { linksMock } from '../links/mocks/links.mock';
+import { UpdateThemeDto } from './dtos/update-theme.dto';
+import { themesMock } from './mocks/themes.mock';
 
 const mockThemeRepository = {
   create: jest.fn(),
@@ -58,7 +63,6 @@ describe('ThemesService', () => {
         keywords: 'NestJS',
       };
 
-      
       mockThemeRepository.create.mockReturnValue(createThemeDto);
       mockThemeRepository.save.mockResolvedValue({
         id: '1',
@@ -73,6 +77,62 @@ describe('ThemesService', () => {
     });
   });
 
+  describe('findAll', () => {
+    it('should return themes with pagination', async () => {
+      const page = 1;
+      const limit = 10;
+      const offset = 0;      
+
+      const total = themesMock.length;
+
+      mockThemeRepository.findAndCount.mockResolvedValue([themesMock, total]);
+
+      const result = await service.findAll(page, limit, offset);
+
+      expect(result).toEqual({
+        themes: themesMock,
+        meta: {
+          total,
+          hasMore: false,
+        },
+      });
+
+      expect(mockThemeRepository.findAndCount).toHaveBeenCalledWith({
+        order: { createdAt: 'DESC' },
+        skip: offset + (page - 1) * limit,
+        take: limit,
+      });
+    });
+
+    it('should return hasMore true if there are more themes', async () => {
+      const page = 1;
+      const limit = 1;
+      const offset = 0;
+
+      const mockThemes = [
+        {
+          id: '1',
+          title: 'Theme 1',
+          keywords: 'keyword1',
+          status: ThemeStatus.PENDING,
+        },
+      ];
+      const total = 2;
+
+      mockThemeRepository.findAndCount.mockResolvedValue([mockThemes, total]);
+
+      const result = await service.findAll(page, limit, offset);
+
+      expect(result).toEqual({
+        themes: mockThemes,
+        meta: {
+          total,
+          hasMore: true,
+        },
+      });
+    });
+  });
+
   describe('findOneById', () => {
     it('should throw a NotFoundException if theme not found', async () => {
       mockThemeRepository.findOne.mockResolvedValue(null);
@@ -82,8 +142,8 @@ describe('ThemesService', () => {
     });
 
     it('should return the theme with its links', async () => {
-      const theme = { id: '1', title: 'Test Theme', keywords: 'test' };
-      const links = [{ id: '1', url: 'https://example.com' }];
+      const theme = { id: '1', title: 'Test Theme', keywords: 'test' } as Theme;
+      const links = linksMock as Link[];
       const meta = { total: 1, hasMore: false };
 
       mockThemeRepository.findOne.mockResolvedValue(theme);
@@ -98,16 +158,56 @@ describe('ThemesService', () => {
     });
   });
 
-  describe('delete', () => {
-    it('should throw NotFoundException if theme is not found', async () => {
-      mockThemeRepository.delete.mockResolvedValue({ affected: 0 });
-      await expect(service.delete('1')).rejects.toThrow(NotFoundException);
+  describe('update', () => {
+    it('should update the theme and return it', async () => {
+      const themeId = '1';
+      const updateThemeDto: UpdateThemeDto = {
+        title: 'Updated Title',
+        keywords: 'some key words',
+      };
+      const existingTheme = { id: themeId, ...updateThemeDto };
+
+      mockThemeRepository.preload.mockResolvedValue(existingTheme);
+      mockThemeRepository.save.mockResolvedValue(existingTheme);
+
+      const result = await service.update(themeId, updateThemeDto);
+
+      expect(mockThemeRepository.preload).toHaveBeenCalledWith({
+        id: themeId,
+        ...updateThemeDto,
+      });
+      expect(mockThemeRepository.save).toHaveBeenCalledWith(existingTheme);
+      expect(result).toEqual(existingTheme);
     });
 
+    it('should throw NotFoundException if the theme does not exist', async () => {
+      const themeId = '1';
+      const updateThemeDto: UpdateThemeDto = {
+        title: 'Updated Title',
+        keywords: 'some key words',
+      };
+
+      mockThemeRepository.preload.mockResolvedValue(null); // Simulando que o tema não foi encontrado
+
+      await expect(service.update(themeId, updateThemeDto)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.update(themeId, updateThemeDto)).rejects.toThrow(
+        `Theme with ID ${themeId} not found`,
+      );
+    });
+  });
+
+  describe('delete', () => {
     it('should delete the theme if it exists', async () => {
       mockThemeRepository.delete.mockResolvedValue({ affected: 1 });
       await service.delete('1');
       expect(themeRepository.delete).toHaveBeenCalledWith('1');
+    });
+
+    it('should throw NotFoundException if theme is not found', async () => {
+      mockThemeRepository.delete.mockResolvedValue({ affected: 0 });
+      await expect(service.delete('1')).rejects.toThrow(NotFoundException);
     });
   });
 });

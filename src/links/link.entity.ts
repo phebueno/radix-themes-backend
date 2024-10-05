@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Theme } from '../themes/theme.entity';
-import { Url } from 'url';
 
 @Entity('links')
 export class Link {
