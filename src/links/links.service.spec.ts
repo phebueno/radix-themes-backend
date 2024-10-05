@@ -39,6 +39,10 @@ describe('LinksService', () => {
   });
 
   describe('createLinksForTheme', () => {
+    beforeEach(() => {
+      jest.clearAllMocks(); // Limpa o estado dos mocks antes de cada teste
+    });
+
     it('should create and save links for the given theme', async () => {
       const themeId = '1';
       const articles: ArticleDto[] = [mockArticleDto, mockArticleDto];
@@ -65,6 +69,42 @@ describe('LinksService', () => {
       //one for each item in array
       linkEntities.forEach((linkEntity) => {
         expect(mockLinkRepository.create).toHaveBeenCalledWith(linkEntity);
+      });
+      expect(mockLinkRepository.save).toHaveBeenCalledWith([
+        linkEntities,
+        linkEntities,
+      ]);
+    });
+
+    it('should create and save links for the given theme when no seendate has an invalid value', async () => {
+      const themeId = '1';
+      const articles: ArticleDto[] = [
+        { ...mockArticleDto, seendate: 'abc' },
+        { ...mockArticleDto, seendate: 'abc' },
+      ];
+
+      const linkEntities = articles.map((article) => ({
+        link: article.url,
+        theme: { id: themeId },
+        imgUrl: article.socialimage,
+        title: article.title,
+        publishedDate:
+          parse(article.seendate, "yyyyMMdd'T'HHmmssX", new Date()) || null,
+        sourceCountry: article.sourcecountry,
+      }));
+
+      mockLinkRepository.create.mockReturnValue(linkEntities);
+      mockLinkRepository.save.mockResolvedValue(linkEntities);
+
+      await service.createLinksForTheme(themeId, articles);
+
+      expect(mockLinkRepository.create).toHaveBeenCalledTimes(
+        linkEntities.length,
+      );
+
+      //one for each item in array
+      linkEntities.forEach((linkEntity) => {
+        expect(mockLinkRepository.create).toHaveBeenCalledTimes(linkEntities.length); //runs twice because of parse failure
       });
       expect(mockLinkRepository.save).toHaveBeenCalledWith([
         linkEntities,

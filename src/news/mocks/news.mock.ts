@@ -1,13 +1,12 @@
-import { ArticleDto } from "../dtos/article-dto";
+import { ArticleDto } from '../dtos/article-dto';
 
 export const mockArticleDto: ArticleDto = {
-    url: 'https://example.com',
-    url_mobile: 'https://m.example.com',
-    title: 'Example News Article',
-    seendate: '20240826T013000Z',
-    socialimage: 'https://example.com/image.jpg',
-    domain: 'example.com',
-    language: 'en',
-    sourcecountry: 'US',
-  };
-  
+  url: 'https://example.com',
+  url_mobile: 'https://m.example.com',
+  title: 'Example News Article',
+  seendate: '20240826T013000Z',
+  socialimage: '',
+  domain: 'example.com',
+  language: 'en',
+  sourcecountry: 'US',
+};
