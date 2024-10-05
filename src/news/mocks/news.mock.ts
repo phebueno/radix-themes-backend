@@ -4,7 +4,7 @@ export const mockArticleDto: ArticleDto = {
     url: 'https://example.com',
     url_mobile: 'https://m.example.com',
     title: 'Example News Article',
-    seendate: '2024-10-05',
+    seendate: '20240826T013000Z',
     socialimage: 'https://example.com/image.jpg',
     domain: 'example.com',
     language: 'en',
