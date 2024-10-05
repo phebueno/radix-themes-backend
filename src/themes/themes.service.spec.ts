@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { Theme } from './theme.entity';
 import { LinksService } from '../links/links.service';
 import { CreateThemeDto } from './dtos/create-theme.dto';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ThemeStatus } from './enums/theme-status.enum';
 import { Link } from '../links/link.entity';
 import { linksMock } from '../links/mocks/links.mock';
 import { UpdateThemeDto } from './dtos/update-theme.dto';
 import { themesMock } from './mocks/themes.mock';
+import { NewsService } from '../news/news.service';
+import { ArticleDto } from '../news/dtos/article-dto';
+import { mockArticleDto } from '../news/mocks/news.mock';
 
 const mockThemeRepository = {
   create: jest.fn(),
@@ -22,6 +25,10 @@ const mockThemeRepository = {
   update: jest.fn(),
 };
 
+const mockNewsService = {
+  fetchNewsFromAPI: jest.fn(),
+};
+
 const mockLinksService = {
   createLinksForTheme: jest.fn(),
   findLinksByThemeId: jest.fn(),
@@ -30,6 +37,7 @@ const mockLinksService = {
 describe('ThemesService', () => {
   let service: ThemesService;
   let themeRepository: Repository<Theme>;
+  let newsService: NewsService;
   let linksService: LinksService;
 
   beforeEach(async () => {
@@ -41,6 +49,10 @@ describe('ThemesService', () => {
           useValue: mockThemeRepository,
         },
         {
+          provide: NewsService,
+          useValue: mockNewsService,
+        },
+        {
           provide: LinksService,
           useValue: mockLinksService,
         },
@@ -49,6 +61,7 @@ describe('ThemesService', () => {
 
     service = module.get<ThemesService>(ThemesService);
     themeRepository = module.get<Repository<Theme>>(getRepositoryToken(Theme));
+    newsService = module.get<NewsService>(NewsService);
     linksService = module.get<LinksService>(LinksService);
   });
 
@@ -208,6 +221,98 @@ describe('ThemesService', () => {
     it('should throw NotFoundException if theme is not found', async () => {
       mockThemeRepository.delete.mockResolvedValue({ affected: 0 });
       await expect(service.delete('1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('searchNews', () => {
+    it('should call NewsService and LinksService, and update theme status to COMPLETED', async () => {
+      const themeId = '1';
+      const existingTheme = {
+        id: themeId,
+        title: 'Test Theme',
+        keywords: 'test, keywords',
+        status: ThemeStatus.PENDING,
+      };
+
+      const mockArticles: ArticleDto[] = [
+        mockArticleDto,
+      ];
+
+      mockThemeRepository.findOne.mockResolvedValue(existingTheme);
+      mockNewsService.fetchNewsFromAPI.mockResolvedValue(mockArticles);
+      mockLinksService.createLinksForTheme.mockResolvedValue(undefined);
+
+      mockThemeRepository.update.mockResolvedValue(undefined);
+
+      await service.searchNews(themeId);
+
+      expect(mockThemeRepository.update).toHaveBeenCalledWith(themeId, {
+        status: ThemeStatus.IN_PROGRESS,
+      });
+      expect(mockNewsService.fetchNewsFromAPI).toHaveBeenCalledWith(existingTheme);
+      expect(mockLinksService.createLinksForTheme).toHaveBeenCalledWith(themeId, mockArticles);
+      expect(mockThemeRepository.update).toHaveBeenCalledWith(themeId, {
+        status: ThemeStatus.COMPLETED,
+      });
+    });
+
+    it('should throw NotFoundException if the theme does not exist', async () => {
+      const themeId = '1';
+      mockThemeRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.searchNews(themeId)).rejects.toThrow(
+        new NotFoundException(`Theme with ID ${themeId} not found`),
+      );
+    });
+
+    it('should throw ForbiddenException if the theme status is COMPLETED', async () => {
+      const themeId = '1';
+      const existingTheme = {
+        id: themeId,
+        status: ThemeStatus.COMPLETED,
+      };
+
+      mockThemeRepository.findOne.mockResolvedValue(existingTheme);
+
+      await expect(service.searchNews(themeId)).rejects.toThrow(
+        new ForbiddenException(
+          `News search on theme with ID ${themeId} is already completed`,
+        ),
+      );
+    });
+
+    it('should revert theme status to PENDING if there is an error', async () => {
+      const themeId = '1';
+      const existingTheme = {
+        id: themeId,
+        title: 'Test Theme',
+        keywords: 'test, keywords',
+        status: ThemeStatus.PENDING,
+      };
+
+      mockThemeRepository.findOne.mockResolvedValue(existingTheme);
+      mockNewsService.fetchNewsFromAPI.mockRejectedValue(new Error('API Error'));
+      mockThemeRepository.update.mockResolvedValue(undefined);
+
+      await expect(service.searchNews(themeId)).rejects.toThrow('Error fetching news.');
+
+      expect(mockThemeRepository.update).toHaveBeenCalledWith(themeId, {
+        status: ThemeStatus.IN_PROGRESS,
+      });
+      expect(mockThemeRepository.update).toHaveBeenCalledWith(themeId, {
+        status: ThemeStatus.PENDING,
+      });
+    });
+  });
+
+  describe('updateThemeStatus', () => {
+    it('should update the status of a theme', async () => {
+      const themeId = '1';
+      const status = ThemeStatus.IN_PROGRESS;
+
+      await service['updateThemeStatus'](themeId, status);
+
+      expect(mockThemeRepository.update).toHaveBeenCalledWith(themeId, { status });
     });
   });
 });
