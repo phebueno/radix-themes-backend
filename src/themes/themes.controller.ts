@@ -29,6 +29,7 @@ import {
   paramSchema,
 } from '../swagger/theme.swagger';
 import { ApiSearchNewsResponses } from '../swagger/theme.decorator';
+import { PaginationRequestDto, PaginationRequestWithOffsetDto, PaginationTransformPipe } from './dtos/pagination-request.dto';
 
 @ApiTags('themes')
 @Controller('themes')
@@ -57,11 +58,9 @@ export class ThemesController {
     description: 'Get all themes with pagination.',
   })
   findAllThemes(
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
-    @Query('offset') offset = 0,
+    @Query(PaginationTransformPipe) query: PaginationRequestWithOffsetDto
   ): Promise<{ themes: Theme[]; meta: { total: number; hasMore: boolean } }> {
-    return this.themesService.findAll(page, limit, offset);
+    return this.themesService.findAll(query.page, query.limit, query.offset);
   }
 
   @Get(':id')
@@ -79,10 +78,9 @@ export class ThemesController {
   })
   async getThemeById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+    @Query(PaginationTransformPipe) query: PaginationRequestDto
   ) {
-    const newsLinks = await this.themesService.findOneById(id, page, limit);
+    const newsLinks = await this.themesService.findOneById(id, query.page, query.limit);
 
     return newsLinks;
   }
